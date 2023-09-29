@@ -1,0 +1,63 @@
+<html>
+
+<div x-data="{ count: 0 }">
+    <button @click="count++">+</button>
+    <span x-text="count"></span>
+    <button @click="count--">-</button>
+</div>
+
+<script>
+
+    // Keep track of some data
+    // When the data changes, refresh the DOM
+
+    let root = document.querySelector('[x-data]')
+    let rawData = getInitialData()
+    let data = observe(rawData)
+    refreshDOM()
+
+    function observe(data) {
+        return new Proxy(data, {
+            set(target, key, value) {
+                target[key] = value
+
+                refreshDOM()
+            }
+        })
+    }
+
+    function getInitialData() {
+        let dataString = root.getAttribute('x-data')
+        return eval(`(${dataString})`)
+    }
+
+    function refreshDOM() {
+        walkDOM(root, el => {
+            if(el.hasAttribute('x-text')) {
+                let expression = el.getAttribute('x-text') // count or whatever data-attribute
+                // el.innerText = "foo"
+                // el.innerText = eval(`(${expression})`) // doesnt work because we didnt have the value of 'for example count' but data.count
+                el.innerText = eval(`with (data) { (${expression}) }`) // we use with statment to retreive value of data-attr from data object
+            }
+        })
+    }
+
+    function walkDOM(el, callback) {
+        callback(el)
+
+        el = el.firstElementChild
+
+        while(el) {
+            walkDOM(el, callback)
+
+            el = el.nextElementSibling
+        }
+    }
+
+
+    // in this stage we can refresh the dom after the state change by calling the refreshDOM function, but we need call it manually
+    // now we need to make things reactive automaticly, when the state change th dom refreshed auto
+    // to acheive that we can use Proxy Api, to setup an observer to observe the state and call the refreshDOM after any change made
+</script>
+
+</html>

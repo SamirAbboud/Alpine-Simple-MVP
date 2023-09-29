@@ -1,0 +1,83 @@
+<html>
+
+<div x-data="{ count: 0 }">
+    <button @mouseenter="count++">+</button>
+    <span x-text="count"></span>
+    <button @click="count--">-</button>
+
+    <span x-show="count > 5">Greater than 5</span>
+</div>
+
+<script>
+
+    // 1- Allow other events
+    // 2- Allow other directives
+
+    let directives = {
+        'x-text': (el, value) => {
+            el.innerText = value
+        },
+        'x-show': (el, value) => {
+            el.style.display = value ? 'block' : 'none'
+        }
+    }
+
+    let root = document.querySelector('[x-data]')
+    let rawData = getInitialData()
+    let data = observe(rawData)
+    
+    registerListeners()
+    refreshDOM()
+
+    function registerListeners() {
+        walkDOM(root, el => {
+            Array.from(el.attributes).forEach(attribute => {
+                if (!attribute.name.startsWith('@')) return;
+
+                let event = attribute.name.replace('@', '');
+                el.addEventListener(event, () => {
+                    eval(`with (data) { (${attribute.value}) }`)
+                })
+            })
+        })
+    }
+
+    function observe(data) {
+        return new Proxy(data, {
+            set(target, key, value) {
+                target[key] = value
+
+                refreshDOM()
+            }
+        })
+    }
+
+    function getInitialData() {
+        let dataString = root.getAttribute('x-data')
+        return eval(`(${dataString})`)
+    }
+
+    function refreshDOM() {
+        walkDOM(root, el => {
+            Array.from(el.attributes).forEach(attribute => {
+                if (!Object.keys(directives).includes(attribute.name)) return;
+
+                directives[attribute.name](el, eval(`with (data) { (${attribute.value}) }`))
+            })
+        })
+    }
+
+    function walkDOM(el, callback) {
+        callback(el)
+
+        el = el.firstElementChild
+        while(el) {
+            walkDOM(el, callback)
+
+            el = el.nextElementSibling
+        }
+    }
+
+</script>
+
+</html>

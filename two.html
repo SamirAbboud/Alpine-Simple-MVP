@@ -1,0 +1,72 @@
+<html>
+
+<div x-data="{ count: 0 }">
+    <button @click="count++">+</button>
+    <span x-text="count"></span>
+    <button @click="count--">-</button>
+</div>
+
+<script>
+
+    // Keep track of some data
+    // When the data changes, refresh the DOM
+
+    let root = document.querySelector('[x-data]')
+    let data = getInitialData()
+    refreshDOM()
+
+    function getInitialData() {
+        let dataString = root.getAttribute('x-data')
+        return eval(`(${dataString})`)
+    }
+
+
+    // step one
+    /*function refreshDOM() {
+        walkDOM(root, el => {
+            console.log(el.outerHTML)
+        })
+    }
+
+    function walkDOM(el, callback) {
+        callback(el)
+
+        el = el.firstElementChild
+
+        while(el) {
+            walkDOM(el, callback)
+
+            el = el.nextElementSibling
+        }
+    }
+    */
+
+    // step 2
+    function refreshDOM() {
+        walkDOM(root, el => {
+            if(el.hasAttribute('x-text')) {
+                let expression = el.getAttribute('x-text') // count or whatever data-attribute
+                // el.innerText = "foo"
+                // el.innerText = eval(`(${expression})`) // doesnt work because we didnt have the value of 'for example count' but data.count
+                el.innerText = eval(`with (data) { (${expression}) }`) // we use with statment to retreive value of data-attr from data object
+            }
+        })
+    }
+
+    function walkDOM(el, callback) {
+        callback(el)
+
+        el = el.firstElementChild
+
+        while(el) {
+            walkDOM(el, callback)
+
+            el = el.nextElementSibling
+        }
+    }
+
+    // now we have our data in data object and we were able to set the value to the el have x-text attr
+    // and any change of the value from the console to the value the element will respond to the modification after we call refresh dom function
+</script>
+
+</html>

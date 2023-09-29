@@ -1,0 +1,37 @@
+<html>
+
+<div x-data="{ count: 0 }">
+    <button @click="count++">+</button>
+    <span x-text="count"></span>
+    <button @click="count--">-</button>
+</div>
+
+<!--
+    using AlpineJS
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+-->
+
+<script>
+
+    // Keep track of some data
+    // When the data changes, refresh the DOM
+
+    // step 1
+    // let root = document.querySelector('[x-data]')
+    // let dataString = root.getAttribute('x-data')
+    // let data = eval(`(${dataString})`)
+    // console.log(data);
+
+    // step 2 refactor 
+    let root = document.querySelector('[x-data]')
+    let data = getInitialData()
+    console.log(data)
+
+    function getInitialData() {
+        let dataString = root.getAttribute('x-data')
+        return eval(`(${dataString})`)
+    }
+
+</script>
+
+</html>
